@@ -2,3 +2,7 @@ fastapi[all]
 Flask
 pymongo
 flask_cors
+bycript
+bson
+re
+datetime
