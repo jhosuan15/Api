@@ -1,53 +1,34 @@
 import os
 from flask import Flask, request, jsonify
-from pymongo import MongoClient
 from flask_cors import CORS
+from pymongo import MongoClient
+
 app = Flask(__name__)
-# Habilitar CORS para todas las rutas
 CORS(app)
-# Configurar la conexión a MongoDB
-client = MongoClient("mongodb+srv://Jhosuan:Jhosuan@cluster.ftalklb.mongodb.net/Sistema", 
-                     tls=True, tlsAllowInvalidCertificates=True)
 
-db = client["Sistema"]
+try:
+    # Conexión a MongoDB
+    client = MongoClient("mongodb+srv://Jhosuan:Jhosuan@cluster.ftalklb.mongodb.net/Sistema", 
+                         tls=True, tlsAllowInvalidCertificates=True)
+    
+    # Verificar la conexión
+    client.server_info()  # Esto lanzará un error si la conexión falla
+    print("Conexión exitosa a la base de datos MongoDB")
 
-# Rutas para la colección "api TSE"
-@app.route('/personas/<cedula>', methods=['GET'])
-def obtener_persona(cedula):
-    print(f"GET /personas/{cedula}")  # Log del GET en consola
-    persona = db.personas.find_one({"cedula": cedula}, {"_id": 0})
-    
-    if persona:
-        print(f"Respuesta: {persona}")  # Log de la respuesta exitosa
-        return jsonify(persona), 200
-    
-    print("Respuesta: Persona no encontrada")  # Log de respuesta de error
-    return jsonify({"error": "Persona no encontrada"}), 404
+except Exception as e:
+    print(f"Error al conectar con la base de datos: {e}")
 
-# Endpoint para obtener el precio de un producto API
-@app.route('/productos/<nombre>', methods=['GET'])
-def obtener_producto(nombre):
-    producto = db.productos.find_one({"nombre": nombre}, {"_id": 0})
-    
-    if producto:
-        print(f"Respuesta: {producto}")  # Log de la respuesta exitosa
-        return jsonify(producto), 200
-    else:
-        return jsonify({"error": "Producto no encontrado"}), 404
+db = client['Sistema']
 
-# Rutas para la colección "transacciones"  api BANCO
-@app.route('/transacciones', methods=['POST'])
-def insertar_transaccion():
-    datos = request.json
-    if not datos or not all(k in datos for k in ("numero_tarjeta", "monto")):
-        return jsonify({"error": "Datos incompletos"}), 400
-    
-    transaccion = {
-        "numero_tarjeta": datos["numero_tarjeta"],
-        "monto": datos["monto"]
-    }
-    db.transacciones.insert_one(transaccion)
-    return jsonify({"mensaje": "Transacción insertada con éxito"}), 201
+# Importar y registrar los blueprints
+from routes.inventarioRoutes import inventario_blueprint
+from routes.facturasRoutes import facturas_blueprint
+from routes.clientes import clientes_blueprint
+from routes.usuarioRoutes import usuarios_blueprint
+app.register_blueprint(inventario_blueprint, url_prefix='/api/inventario')
+app.register_blueprint(facturas_blueprint, url_prefix='/api/facturas')
+app.register_blueprint(clientes_blueprint, url_prefix='/api/clientes')
+app.register_blueprint(usuarios_blueprint, url_prefix='/api/usuarios')
 
 
 if __name__ == '__main__':
