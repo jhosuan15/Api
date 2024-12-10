@@ -3,6 +3,5 @@ Flask
 pymongo
 flask_cors
 bcrypt 
-bson
-
+gunicorn
 datetime
