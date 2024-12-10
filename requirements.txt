@@ -1,1 +1,4 @@
 fastapi[all]
+Flask
+pymongo
+flask_cors
