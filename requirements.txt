@@ -4,5 +4,5 @@ pymongo
 flask_cors
 bcrypt 
 bson
-re
+
 datetime
